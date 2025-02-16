@@ -1,0 +1,9 @@
+
+MYSQL_DB_NAME = "chatappdev"
+MYSQL_USER_NAME = "host"
+MYSQL_PASSWORD = "host"
+MYSQL_HOST = "localhost" + ":3306"
+CONNECTION_STRING = f"mysql+pymysql://{MYSQL_USER_NAME}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DB_NAME}"
+
+WEB_PORT = 8000
+SECRET_KEY = "top_secret"
