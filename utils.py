@@ -5,6 +5,8 @@ from settings import SECRET_KEY  # Import your secret key
 from fastapi.responses import JSONResponse
 from fastapi import status
 from typing import Dict, Union, List, Any
+from sqlalchemy.orm import Session
+from schemas import DecodedToken
 
 ALGORITHM = "HS256"
 
@@ -33,22 +35,21 @@ def generate_token(user_id: int, password: str) -> str:
 
 
 # Function to decode token and verify user credentials
-def decode_token(token: str, entered_password: str) -> bool:
+def decode_token(token: str) -> DecodedToken:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload["user_id"]
         hashed_password = payload["hashed_password"]
+        return DecodedToken(user_id=user_id, hashed_password=hashed_password)
 
-        # Verify if entered password matches the stored hash
-        return verify_password(entered_password, hashed_password)
-    except jwt.ExpiredSignatureError:
-        return False
-    except jwt.InvalidTokenError:
-        return False
+    except jwt.ExpiredSignatureError as e:
+        raise e
+    except jwt.InvalidTokenError as e:
+        raise e
 
 
 def create_response(result: Any, status_code=status.HTTP_200_OK, is_error=False):
-    if is_error:
+    if not is_error:
         response = JSONResponse(
             content={"status": "success", "result": result},
             status_code=status_code

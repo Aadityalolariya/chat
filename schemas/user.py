@@ -3,13 +3,7 @@ from typing import List, Optional
 from datetime import datetime
 
 
-class LoginSchema(BaseModel):
-    password: str
-    phone_number: Optional[str] = None
-    email: Optional[str] = None
-
-
-class SignupSchema(BaseModel):
+class UserSchema(BaseModel):
     password: str
     first_name: str
     last_name: Optional[str] = None
@@ -17,8 +11,9 @@ class SignupSchema(BaseModel):
     phone_number: Optional[str] = None
     email: Optional[str] = None
     created_on: Optional[datetime] = datetime.utcnow()
+    profile_picture: Optional[str] = None
+    description: Optional[str] = None
+    is_logged_in: Optional[bool] = True
+    theme_id: Optional[int] = None
+    last_opened_date: Optional[datetime] = None
 
-
-class DecodedToken(BaseModel):
-    user_id: int
-    hashed_password: str
