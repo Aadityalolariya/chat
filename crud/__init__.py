@@ -2,3 +2,6 @@ from .BaseCrud import BaseCrud
 from .auth import CRUDUser
 from .chat import CRUDChat
 from .chat_user_map import CRUDChatUserMap
+from .message import CRUDMessage
+from .constant import CRUDConstant
+from .group import CRUDGroup

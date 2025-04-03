@@ -9,3 +9,4 @@ class ChatUserMap(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("user.id"))
     chat_id = Column(Integer, ForeignKey("chat.id"))
+    last_seen_timestamp = Column(TIMESTAMP, nullable=True)

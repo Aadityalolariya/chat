@@ -9,5 +9,5 @@ class Constant(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     group_id = Column(Integer, ForeignKey("group.id"))
-    code = Column(String(50), unique=True, nullable=False)
+    code = Column(String(50), nullable=False)
 

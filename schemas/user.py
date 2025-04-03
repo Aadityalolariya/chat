@@ -14,6 +14,5 @@ class UserSchema(BaseModel):
     profile_picture: Optional[str] = None
     description: Optional[str] = None
     is_logged_in: Optional[bool] = True
-    theme_id: Optional[int] = None
-    last_opened_date: Optional[datetime] = None
+    currently_opened_chat_id: Optional[int] = None
 

@@ -6,7 +6,6 @@ import sqlalchemy as sa
 
 
 class UserCrud(BaseCrud[User, UserSchema, UserSchema]):
-    pass
 
     @classmethod
     def get_by_email_phone(cls, db: Session, email: str, phone: str) -> User | None:

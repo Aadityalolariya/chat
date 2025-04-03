@@ -13,4 +13,4 @@ class ChatSchema(BaseModel):
 class CreateChatSchema(BaseModel):
     user_ids: List[int]                 # for group chat, its length will be greater than 1
     chat_name: Optional[str] = None     # in case of single chat, it will be empty
-    
+    is_group_chat: bool = False

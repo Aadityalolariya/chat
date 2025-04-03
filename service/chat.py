@@ -15,17 +15,24 @@ def create_new_chat(request: CreateChatSchema, db: Session, token: str):
     :param db:
     :return:
     """
-    decoded_token = decode_token(token=token)
+    try:
 
-    if len(request.user_ids) == 2:
-        response = handle_dual_chat_creation(request=request, db=db)
-    else:
-        response = handle_group_chat_creation(request=request, db=db, admin_user=decoded_token.user_id)
+        decoded_token = decode_token(token=token)
 
-    return create_response(result=response, is_error=False)
+        if not request.is_group_chat:
+            response = handle_dual_chat_creation(request=request, db=db)
+        else:
+            response = handle_group_chat_creation(request=request, db=db, admin_user=decoded_token.user_id)
+
+        return response
+
+    except Exception as e:
+        raise e
 
 
 def handle_dual_chat_creation(request: CreateChatSchema, db: Session):
+    if len(request.user_ids) > 2:
+        return create_response(result="More than two users not allowed in dual chat", status_code=status.HTTP_400_BAD_REQUEST, is_error=True)
     existing_chat = get_dual_chats_for_given_ids(user_ids=request.user_ids, db=db)
     if not existing_chat:
         obj_in = ChatSchema(is_group_chat=False)
@@ -34,16 +41,19 @@ def handle_dual_chat_creation(request: CreateChatSchema, db: Session):
         # mapping the users and created chat
         map_user_with_chat(user_ids=request.user_ids, db=db, chat_id=created_chat.id)
 
-        return {
+        response = {
             "id": created_chat.id,
             "chat_name": created_chat.chat_name,
             "is_group_chat": created_chat.is_group_chat
         }
-    return {
-        "id": existing_chat[0]['id'],
-        "chat_name": existing_chat[0]['chat_name'],
-        "is_group_chat": existing_chat[0]['is_group_chat']
-    }
+    else:
+        response = {
+            "id": existing_chat[0]['id'],
+            "chat_name": existing_chat[0]['chat_name'],
+            "is_group_chat": existing_chat[0]['is_group_chat']
+        }
+
+    return create_response(result=response, is_error=False)
 
 
 def handle_group_chat_creation(request: CreateChatSchema, db: Session, admin_user: int):
@@ -55,12 +65,13 @@ def handle_group_chat_creation(request: CreateChatSchema, db: Session, admin_use
         # mapping the users and created chat
         map_user_with_chat(user_ids=request.user_ids, db=db, chat_id=created_chat.id)
 
-        return {
+        response = {
             "id": created_chat.id,
             "admin_user_id": created_chat.admin_user_id,
             "chat_name": created_chat.chat_name,
             "is_group_chat": created_chat.is_group_chat
         }
+        return create_response(result=response, is_error=False)
 
     except Exception as e:
         raise e

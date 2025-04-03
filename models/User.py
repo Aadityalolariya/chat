@@ -17,6 +17,5 @@ class User(Base):
     profile_picture = Column(String(150))
     description = Column(Text)
     is_logged_in = Column(Boolean, nullable=False, default=True)
-    theme_id = Column(Integer, ForeignKey("constant.id"))
-    last_opened_date = Column(TIMESTAMP)
+    currently_opened_chat_id = Column(Integer, ForeignKey("chat.id"))
     created_on = Column(TIMESTAMP, default=datetime.utcnow)

@@ -1,5 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, ForeignKey, TIMESTAMP, Text, Boolean, JSON
 from db import Base
 from datetime import datetime
 
@@ -9,4 +8,4 @@ class MessageSeenStatus(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     message_id = Column(Integer, ForeignKey("message.id"))
-    sent_status_id = Column(Integer, ForeignKey("constant.id"))
+    seen_status = Column(Text, nullable=True)
