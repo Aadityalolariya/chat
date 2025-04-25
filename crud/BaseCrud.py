@@ -23,7 +23,7 @@ class BaseCrud(Generic[ModelType, SchemaType, UpdateSchemaType]):
     def get_by_id(self, db: Session, id: int) -> ModelType | None:
         return db.query(self.model).filter(BaseCrud.model.id == id).first()
 
-    def get_all(self, db: Session, limit: int = 100):
+    def get_all(self, db: Session, limit: int = 1000):
         return db.query(self.model).limit(limit).all()
 
     def update(self, db: Session, obj_id: int, obj_in: Dict) -> ModelType:

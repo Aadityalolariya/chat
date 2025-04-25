@@ -5,3 +5,4 @@ from .chat_user_map import CRUDChatUserMap
 from .message import CRUDMessage
 from .constant import CRUDConstant
 from .group import CRUDGroup
+from .message_seen_status import CRUDMessageSeenStatus

@@ -60,3 +60,11 @@ def create_response(result: Any, status_code=status.HTTP_200_OK, is_error=False)
             status_code=status_code
         )
     return response
+
+
+def get_current_time():
+    try:
+        return datetime.utcnow()
+    except Exception as e:
+        print(e)
+        raise e
