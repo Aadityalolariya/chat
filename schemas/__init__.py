@@ -6,3 +6,5 @@ from .message import *
 from .message_seen_status import *
 from .constant import *
 from .group import *
+from .document import *
+from .unseen_messages import *

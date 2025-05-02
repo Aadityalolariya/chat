@@ -6,3 +6,5 @@ from .message import CRUDMessage
 from .constant import CRUDConstant
 from .group import CRUDGroup
 from .message_seen_status import CRUDMessageSeenStatus
+from .document import CRUDDocument
+from .unseen_messages import CRUDUnseenMessages

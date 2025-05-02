@@ -36,8 +36,6 @@ def login_user(request: LoginSchema, db: Session) -> bool:
             "profile_picture": user_obj.profile_picture,
             "description": user_obj.description,
             "login_status_id": user_obj.is_logged_in,
-            "theme_id": user_obj.theme_id,
-            "last_opened_date": str(user_obj.last_opened_date),
             "created_on": str(user_obj.created_on),
             "token": generate_token(user_id=user_obj.id, password=request.password)
         }

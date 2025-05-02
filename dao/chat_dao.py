@@ -1,10 +1,13 @@
+import json
+
 from models import *
-from crud import CRUDChatUserMap
+from crud import CRUDChatUserMap, CRUDMessageSeenStatus
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Dict
 import sqlalchemy as sa
 from schemas import ChatUserMapSchema
 from fastapi.encoders import jsonable_encoder
+from utils import get_current_time
 
 
 def get_dual_chats_for_given_ids(user_ids: List[int], db: Session) -> List[dict]:
@@ -31,4 +34,21 @@ def map_user_with_chat(user_ids: List[int], chat_id: int, db: Session) -> List[C
         return response
 
     except Exception as e:
+        raise e
+
+
+def update_message_seen_status(db: Session, user_id: int, status: int, message_seen_status_list: List[dict]):
+    try:
+        current_time = get_current_time()
+        for record in message_seen_status_list:
+            seen_status = json.loads(record['seen_status'])
+            if str(user_id) in seen_status:
+                seen_status[str(user_id)] = {
+                    "ts": current_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    "status": status
+                }
+            seen_status_dict = json.dumps(seen_status)
+            CRUDMessageSeenStatus.update(db=db, obj_id=record['id'], obj_in={"seen_status": seen_status_dict})
+    except Exception as e:
+        print(e)
         raise e

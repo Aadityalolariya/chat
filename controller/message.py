@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Security
+from fastapi import APIRouter, Depends, Security, UploadFile, File, Form
 from fastapi.security import OAuth2PasswordBearer
 from utils import decode_token, create_response
 import service
@@ -22,3 +22,25 @@ def api_create_message(chat_id: int, request: CreateMessageSchema, db: Session =
         return result
     except Exception as e:
         return create_response(result=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)
+
+
+@message_router.post('/upload_document')
+async def api_upload_message(file: UploadFile = File(...), db: Session = Depends(get_db),
+                             token: str = Security(oauth2_scheme)):
+    try:
+        result = service.upload_file(file=file, db=db, token=token)
+        db.commit()
+        return result
+    except Exception as e:
+        return create_response(result=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)
+
+
+@message_router.get('/get_document/{id}')
+async def api_get_document(id: int, db: Session = Depends(get_db), token: str = Security(oauth2_scheme)):
+    try:
+        result = service.get_document(id=id, db=db, token=token)
+
+        return result
+    except Exception as e:
+        return create_response(result=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)
+
