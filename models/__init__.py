@@ -8,3 +8,4 @@ from models.MessageSeenStatus import MessageSeenStatus
 from models.Reaction import Reaction
 from models.Thread import Thread
 from models.User import User
+from models.UnseenMessages import UnseenMessages

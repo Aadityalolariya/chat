@@ -1,3 +1,4 @@
+import constants
 from models import *
 from crud import CRUDChatUserMap
 from sqlalchemy.orm import Session
@@ -16,5 +17,17 @@ def get_receiver_data_for_seen_status(user_id: int, chat_id: int, db: Session) -
         )
         result = jsonable_encoder(db.execute(query).mappings().all())
         return result
+    except Exception as e:
+        raise e
+
+
+def fetch_messages(db: Session, chat_id: int, offset: int = constants.MESSAGE_OFFSET,
+                   limit: int = constants.MESSAGE_LIMIT):
+    try:
+        query = (sa.select(Message).filter(Message.chat_id == chat_id).order_by(Message.id.desc()).limit(limit)
+                 .offset(offset))
+        result = jsonable_encoder(db.execute(query).mappings().all())
+        return result
+
     except Exception as e:
         raise e

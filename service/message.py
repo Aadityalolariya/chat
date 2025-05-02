@@ -1,15 +1,24 @@
 import json
 
+from fastapi import UploadFile
+from fastapi.responses import FileResponse
 from utils import decode_token, hash_password, verify_password, create_response, generate_token
 from sqlalchemy.orm import Session
-from crud import CRUDMessage, CRUDMessageSeenStatus
-from models.User import User
+from crud import CRUDMessage, CRUDMessageSeenStatus, CRUDDocument, CRUDUnseenMessages
+import os
 from schemas import *
 from fastapi import status
 from dao import *
 from utils import get_current_time
 from constants import *
+from uuid import uuid4
+import shutil
 
+# import sys
+#
+# sys.path.append(os.getcwd())
+
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 def create_new_message(request: CreateMessageSchema, db: Session, token: str, chat_id: int):
     """
@@ -41,12 +50,18 @@ def create_new_message(request: CreateMessageSchema, db: Session, token: str, ch
         chat_user_map_list = CRUDChatUserMap.get_chat_user_map_details_by_chat_id(db=db, chat_id=chat_id)
         seen_status_dict = {}
         current_time = get_current_time()
+        unseen_message_list = []
+
         for user_map in chat_user_map_list:
             seen_status = MSG_PENDING_STATUS
             if user_map['is_logged_in'] is True:
                 seen_status = MSG_SENT_STATUS
                 if user_map['currently_opened_chat_id'] == chat_id:
                     seen_status = MSG_SEEN_STATUS
+
+            if seen_status != MSG_SEEN_STATUS:
+                unseen_obj = UnseenMessagesSchema(message_id=message_obj.id, chat_id=chat_id, user_id=user_map['user_id'])
+                CRUDUnseenMessages.create(db=db, obj_in=unseen_obj)
 
             seen_status_dict[user_map['user_id']] = {
                 "ts": current_time.strftime('%Y-%m-%d %H:%M:%S'),
@@ -69,4 +84,47 @@ def create_new_message(request: CreateMessageSchema, db: Session, token: str, ch
         return create_response(result=resp)
 
     except Exception as e:
+        raise e
+
+
+def upload_file(file: UploadFile, db: Session, token: str):
+    """
+    store the file in server and add entry in document
+    """
+    try:
+        filename = f"{uuid4()}_{file.filename}"
+        filepath = os.path.join(UPLOAD_DIR, filename)
+
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        size_in_bytes = os.path.getsize(filepath)
+
+        # entry in document table
+        doc_obj_in = DocumentSchema(document_path=filepath, document_size=size_in_bytes)
+        document_obj = CRUDDocument.create(db=db, obj_in=doc_obj_in)
+
+        resp = {
+            "document_id": document_obj.id,
+            "document_size": document_obj.document_size
+        }
+
+        return create_response(result=resp)
+
+    except Exception as e:
+        raise e
+
+
+def get_document(id: int, token: str, db: Session):
+    try:
+        doc_obj = CRUDDocument.get_by_id(db=db, id=id)
+
+        filepath = os.path.join(os.getcwd(), doc_obj.document_path)
+
+        if not os.path.isfile(filepath):
+            return create_response(result={"error": "file doesn't exists"}, is_error=True)
+
+        return FileResponse(filepath)
+    except Exception as e:
+        print(e)
         raise e

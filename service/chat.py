@@ -1,6 +1,7 @@
+import constants
 from utils import decode_token, hash_password, verify_password, create_response, generate_token
 from sqlalchemy.orm import Session
-from crud import CRUDChat
+from crud import CRUDChat, CRUDUnseenMessages, CRUDMessageSeenStatus, CRUDUser
 from models.User import User
 from schemas import *
 from fastapi import status
@@ -74,4 +75,40 @@ def handle_group_chat_creation(request: CreateChatSchema, db: Session, admin_use
         return create_response(result=response, is_error=False)
 
     except Exception as e:
+        raise e
+
+
+def open_chat(chat_id: int, db: Session, token: str):
+    """
+    1) mark the unseen messages for the given chat for the current user as seen
+    2) update the current open chat of the current user
+    3) fetch latest n messages for the chat
+    """
+    try:
+        decoded_token = decode_token(token=token)
+        user_id = decoded_token.user_id
+
+        # deleting the records from unseen messages and updating status in message seen status
+        unseen_messages = CRUDUnseenMessages.get_unseen_message_for_user(db=db, user_id=[user_id], chat_id=[chat_id])
+        if unseen_messages:
+            for unseen_msg in unseen_messages:
+                CRUDUnseenMessages.delete(db=db, id=unseen_msg['id'])
+                message_seen_status_list = CRUDMessageSeenStatus.get_by_message_id(db=db, message_id=[unseen_msg['message_id']])
+                update_message_seen_status(db=db, user_id=user_id, status=constants.MSG_SEEN_STATUS,
+                                           message_seen_status_list=message_seen_status_list)
+
+        # update the user current open chat
+        CRUDUser.update(db=db, obj_id=user_id, obj_in={"currently_opened_chat_id": chat_id})
+
+        # fetch latest messages
+        messages = fetch_messages(db=db, chat_id=chat_id, offset=0)
+
+        resp = {
+            "messages": messages,
+            "chat_id": chat_id
+        }
+        return create_response(result=resp)
+
+    except Exception as e:
+        print(e)
         raise e

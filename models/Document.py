@@ -9,7 +9,7 @@ class Document(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     document_path = Column(String(150))
-    document_type_id = Column(Integer, ForeignKey("constant.id"))
+    document_type_id = Column(Integer, ForeignKey("constant.id")) # for future use, currently setting as null
     document_size = Column(Integer)
     created_on = Column(TIMESTAMP, default=datetime.utcnow)
 
