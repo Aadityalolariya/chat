@@ -79,3 +79,44 @@ def signup_user(user_details: SignupSchema, db: Session):
         return create_response(result=response, is_error=False)
     except Exception as e:
         raise e
+
+
+def get_user_info(request: ValidateToken, db: Session):
+    try:
+        decoded_token = decode_token(token=request.token)
+
+        user_obj = CRUDUser.get_by_id(db=db, id=decoded_token.user_id)
+
+        return {
+            "is_active": True,
+            "user_id": user_obj.id,
+            "is_logged_in": user_obj.is_logged_in,
+            "email": user_obj.email,
+            "first_name": user_obj.first_name,
+            "last_name": user_obj.last_name,
+            "display_name": user_obj.display_name,
+            "created_on": user_obj.created_on,
+            "phone_number": user_obj.phone_number
+        }
+    except Exception as e:
+        print("Error: ", e)
+        return {
+            "is_active": False
+        }
+
+
+def logout_user(db: Session, token: str):
+    try:
+        from main import manager
+        decoded_token = decode_token(token=token)
+        user_id = int(decoded_token.user_id)
+        CRUDUser.update(db=db, obj_id=user_id, obj_in={"is_logged_in": False, "currently_opened_chat_id": None})
+        if manager.active_connections.get(user_id):
+            manager.disconnect(manager.active_connections[user_id], user_id=user_id)
+        resp = {
+            "user_id": user_id
+        }
+        return create_response(result=resp)
+    except Exception as e:
+        print("Error: ", e)
+        raise e

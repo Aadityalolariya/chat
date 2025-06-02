@@ -22,3 +22,7 @@ class SignupSchema(BaseModel):
 class DecodedToken(BaseModel):
     user_id: int
     hashed_password: str
+
+
+class ValidateToken(BaseModel):
+    token: str

@@ -20,7 +20,7 @@ import shutil
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-def create_new_message(request: CreateMessageSchema, db: Session, token: str, chat_id: int):
+async def create_new_message(request: CreateMessageSchema, db: Session, token: str, chat_id: int, manager):
     """
     1. make entry in message table
     2. for all the receivers, create record in messageseenstatus table and set status as per the active status of the users
@@ -39,7 +39,7 @@ def create_new_message(request: CreateMessageSchema, db: Session, token: str, ch
         # created_on: Optional[datetime] = datetime.utcnow()
 
         decoded_token = decode_token(token=token)
-        message_request_obj = MessageSchema(chat_id=request.chat_id, content=request.content, sender_id=decoded_token.user_id,
+        message_request_obj = MessageSchema(chat_id=chat_id, content=request.content, sender_id=decoded_token.user_id,
                                     document_id=request.document_id, thread_id=request.thread_id,
                                     reference_message_id=request.reference_message_id)
 
@@ -64,7 +64,7 @@ def create_new_message(request: CreateMessageSchema, db: Session, token: str, ch
                 CRUDUnseenMessages.create(db=db, obj_in=unseen_obj)
 
             seen_status_dict[user_map['user_id']] = {
-                "ts": current_time.strftime('%Y-%m-%d %H:%M:%S'),
+                "ts": current_time.strftime('%Y-%m-%dT%H:%M:%S'),
                 "status": seen_status
             }
 
@@ -79,8 +79,24 @@ def create_new_message(request: CreateMessageSchema, db: Session, token: str, ch
             'document_id': message_obj.document_id,
             'content': message_obj.content,
             'sender_id': message_obj.sender_id,
-            'created_on': message_obj.created_on.strftime('%Y-%m-%d %H:%M:%S')
+            'created_on': message_obj.created_on.strftime('%Y-%m-%dT%H:%M:%S')
         }
+
+        ws_data = {
+            "topic": constants.TOPIC_MESSAGE_SENT,
+            "data": resp
+        }
+        if chat_user_map_list:
+            for record in chat_user_map_list:
+                user = record['user_id']
+                if user == decoded_token.user_id:
+                    continue
+
+                # send message through ws to active users in this chat
+                if user in manager.active_connections:
+                    await manager.send_personal_message(websocket=manager.active_connections[user],
+                                                        message=json.dumps(ws_data))
+
         return create_response(result=resp)
 
     except Exception as e:

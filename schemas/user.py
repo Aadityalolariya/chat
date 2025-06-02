@@ -16,3 +16,8 @@ class UserSchema(BaseModel):
     is_logged_in: Optional[bool] = True
     currently_opened_chat_id: Optional[int] = None
 
+
+class SearchUserSchema(BaseModel):
+    search: Optional[str] = None
+
+

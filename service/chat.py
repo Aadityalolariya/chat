@@ -45,13 +45,16 @@ def handle_dual_chat_creation(request: CreateChatSchema, db: Session):
         response = {
             "id": created_chat.id,
             "chat_name": created_chat.chat_name,
-            "is_group_chat": created_chat.is_group_chat
+            "is_group_chat": created_chat.is_group_chat,
+            "created_on": created_chat.created_on.strftime('%Y-%m-%dT%H:%M:%S')
         }
     else:
+        chatObj = CRUDChat.get_by_id(db=db, id=existing_chat)
         response = {
-            "id": existing_chat[0]['id'],
-            "chat_name": existing_chat[0]['chat_name'],
-            "is_group_chat": existing_chat[0]['is_group_chat']
+            "id": chatObj.id,
+            "chat_name": chatObj.chat_name,
+            "is_group_chat": chatObj.is_group_chat,
+            "created_on": chatObj.created_on.strftime('%Y-%m-%dT%H:%M:%S')
         }
 
     return create_response(result=response, is_error=False)
@@ -70,7 +73,8 @@ def handle_group_chat_creation(request: CreateChatSchema, db: Session, admin_use
             "id": created_chat.id,
             "admin_user_id": created_chat.admin_user_id,
             "chat_name": created_chat.chat_name,
-            "is_group_chat": created_chat.is_group_chat
+            "is_group_chat": created_chat.is_group_chat,
+            "created_on": created_chat.created_on.strftime('%Y-%m-%dT%H:%M:%S')
         }
         return create_response(result=response, is_error=False)
 
@@ -111,4 +115,41 @@ def open_chat(chat_id: int, db: Session, token: str):
 
     except Exception as e:
         print(e)
+        raise e
+
+
+def fetch_chat(token: str, db: Session):
+    try:
+        decoded_token = decode_token(token=token)
+        user_id = decoded_token.user_id
+        result = CRUDChat.get_chats_for_user(user_id=user_id, db=db)
+        return create_response(result=result)
+    except Exception as e:
+        raise e
+
+
+def delete_chat(chat_id: int, db: Session, token: str):
+    """
+    - for group chat
+        - TODO: handle this case
+    - for dual chat
+        - if both user delets the chat
+            - delete chat user mapping
+            - delete entries from unseen messages
+            - delete records from message seen status
+            - delete the messages of the chat
+            - delete the associated documents
+            - TODO: delete reactions and threads
+        - if only one user deletes the chat:
+            - delete chat user mapping
+    :param chat_id:
+    :param db:
+    :param token:
+    :return:
+    """
+    try:
+        decoded_token = decode_token(token=token)
+        user_id = decoded_token.user_id
+        return create_response(result=result)
+    except Exception as e:
         raise e

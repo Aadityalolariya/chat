@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Security
 from fastapi.security import OAuth2PasswordBearer
 from utils import decode_token, create_response
+from crud.chat import CRUDChat
 import service
 from sqlalchemy.orm import Session
 from fastapi import status
@@ -14,8 +15,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 @chat_router.get('/fetch')
-def get_all_chats():
-    return {"result": "chats"}
+def get_all_chats(db: Session = Depends(get_db), token: str = Security(oauth2_scheme)):
+    response = service.fetch_chat(token=token, db=db)
+    return response
 
 
 @chat_router.post('/create_chat')
@@ -32,6 +34,15 @@ def api_create_chat(request: CreateChatSchema, db: Session = Depends(get_db), to
 def api_open_chat(chat_id: int, db: Session = Depends(get_db), token: str = Security(oauth2_scheme)):
     try:
         result = service.open_chat(chat_id=chat_id, db=db, token=token)
+        db.commit()
+        return result
+    except Exception as e:
+        return create_response(result=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)
+
+@chat_router.delete('/chat/{chat_id}')
+def api_delte_chat(chat_id: int, db: Session = Depends(get_db), token: str = Security(oauth2_scheme)):
+    try:
+        result = service.delete_chat(chat_id=chat_id, db=db, token=token)
         db.commit()
         return result
     except Exception as e:

@@ -14,9 +14,7 @@ class MessageSchema(BaseModel):
 
 
 class CreateMessageSchema(BaseModel):
-    chat_id: int
     content: str
-    sender_id: int
     document_id: Optional[int] = None
     thread_id: Optional[int] = None
     reference_message_id: Optional[int] = None

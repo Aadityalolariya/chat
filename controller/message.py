@@ -14,10 +14,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 @message_router.post('/create_message/{chat_id}')
-def api_create_message(chat_id: int, request: CreateMessageSchema, db: Session = Depends(get_db),
+async def api_create_message(chat_id: int, request: CreateMessageSchema, db: Session = Depends(get_db),
                        token: str = Security(oauth2_scheme)):
     try:
-        result = service.create_new_message(request=request, db=db, token=token, chat_id=chat_id)
+        from main import manager
+        result = await service.create_new_message(request=request, db=db, token=token, chat_id=chat_id, manager=manager)
         db.commit()
         return result
     except Exception as e:
