@@ -24,11 +24,47 @@ def get_receiver_data_for_seen_status(user_id: int, chat_id: int, db: Session) -
 def fetch_messages(db: Session, chat_id: int, offset: int = constants.MESSAGE_OFFSET,
                    limit: int = constants.MESSAGE_LIMIT):
     try:
+        group_key_expr = sa.func.coalesce(
+            Message.parent_message_id, Message.id
+        ).label('group_key')
+
+        message_id_query = (sa.select(sa.func.group_concat(Message.id).label("message_id"), group_key_expr)
+                            .filter(Message.chat_id == chat_id)
+                            .group_by(group_key_expr)
+                            .order_by(group_key_expr.desc())
+                            # .limit(limit).offset(offset)
+                            )
+        print(f"message_id_query: {message_id_query}")
+
+        message_ids = []
+        non_paginated_msg = db.execute(message_id_query).all()
+
+        non_paginated_msg = non_paginated_msg[offset:limit]
+
+        for record in non_paginated_msg:
+            msg_str: list = record.message_id.split(',')
+            message_ids.extend(msg_str)
+        print(f"message ids: {message_ids}")
+
         query = (sa.select(Message.id, Message.sender_id, Message.document_id, Message.content, Message.reference_message_id,
-                           Message.chat_id, Message.thread_id, Message.created_on).filter(Message.chat_id == chat_id).order_by(Message.id).limit(limit)
-                 .offset(offset))
-        result = jsonable_encoder(db.execute(query).mappings().all())
-        return result
+                           Message.chat_id, Message.parent_message_id, Message.created_on)
+                 .filter(Message.id.in_(message_ids))
+                 .order_by(Message.id))
+        messages = jsonable_encoder(db.execute(query).mappings().all())
+        result = {}
+
+        for message in messages:
+            message_id = message['parent_message_id']
+            if message_id is None:
+                message_id = message['id']
+
+            if message_id in result:
+                result[message_id]['child_messages'].append(message)
+            else:
+                result[message_id] = message
+                result[message_id]['child_messages'] = list()
+
+        return list(result.values())
 
     except Exception as e:
         raise e
@@ -36,7 +72,7 @@ def fetch_messages(db: Session, chat_id: int, offset: int = constants.MESSAGE_OF
 
 def get_message_and_user_data(message_id, db: Session):
     try:
-        query = (sa.select(Message.id, Message.thread_id, Message.chat_id, Message.reference_message_id,
+        query = (sa.select(Message.id, Message.parent_message_id, Message.chat_id, Message.reference_message_id,
                            Message.sender_id, Message.created_on, ChatUserMap.user_id)
                  .join(ChatUserMap, ChatUserMap.chat_id == Message.chat_id)
                  .filter(Message.id == message_id))

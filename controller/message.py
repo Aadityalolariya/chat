@@ -4,7 +4,7 @@ from utils import decode_token, create_response
 import service
 from sqlalchemy.orm import Session
 from fastapi import status
-from schemas import CreateMessageSchema
+from schemas import CreateMessageSchema, FetchMessagesSchema
 from db import get_db
 
 
@@ -45,3 +45,12 @@ async def api_get_document(id: int, db: Session = Depends(get_db), token: str = 
     except Exception as e:
         return create_response(result=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)
 
+
+@message_router.post('/fetch_messages')
+async def api_upload_message(request: FetchMessagesSchema, db: Session = Depends(get_db),
+                             token: str = Security(oauth2_scheme)):
+    try:
+        result = service.fetch_message_service(request=request, db=db, token=token)
+        return result
+    except Exception as e:
+        return create_response(result=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)

@@ -11,7 +11,7 @@ class Message(Base):
     content = Column(Text)
     sender_id = Column(Integer, ForeignKey("user.id"))
     document_id = Column(Integer, ForeignKey("document.id"))
-    thread_id = Column(Integer, ForeignKey("thread.id"))
+    parent_message_id = Column(Integer, ForeignKey("message.id"), index=True)
     reference_message_id = Column(Integer, ForeignKey("message.id"))
     created_on = Column(TIMESTAMP, default=datetime.utcnow)
 

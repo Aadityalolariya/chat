@@ -40,7 +40,7 @@ async def create_new_message(request: CreateMessageSchema, db: Session, token: s
 
         decoded_token = decode_token(token=token)
         message_request_obj = MessageSchema(chat_id=chat_id, content=request.content, sender_id=decoded_token.user_id,
-                                    document_id=request.document_id, thread_id=request.thread_id,
+                                    document_id=request.document_id, parent_message_id=request.parent_message_id,
                                     reference_message_id=request.reference_message_id)
 
         message_obj = CRUDMessage.create(obj_in=message_request_obj, db=db)
@@ -75,7 +75,7 @@ async def create_new_message(request: CreateMessageSchema, db: Session, token: s
             "chat_id": chat_id,
             'message_id': message_obj.id,
             'message_ref_id': message_obj.reference_message_id,
-            'thread_id': message_obj.thread_id,
+            'parent_message_id': message_obj.parent_message_id,
             'document_id': message_obj.document_id,
             'content': message_obj.content,
             'sender_id': message_obj.sender_id,
@@ -144,3 +144,12 @@ def get_document(id: int, token: str, db: Session):
     except Exception as e:
         print(e)
         raise e
+
+
+def fetch_message_service(request: FetchMessagesSchema, token: str, db: Session):
+    try:
+        decoded_token = decode_token(token=token)
+        result = fetch_messages(db=db, chat_id=request.chat_id, offset=request.offset, limit=request.limit)
+        return create_response(result=result)
+    except Exception as e:
+        return create_response(result=str(e), is_error=True)
