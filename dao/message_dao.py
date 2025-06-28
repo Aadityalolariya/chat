@@ -47,7 +47,9 @@ def fetch_messages(db: Session, chat_id: int, offset: int = constants.MESSAGE_OF
         print(f"message ids: {message_ids}")
 
         query = (sa.select(Message.id, Message.sender_id, Message.document_id, Message.content, Message.reference_message_id,
-                           Message.chat_id, Message.parent_message_id, Message.created_on)
+                           Message.chat_id, Message.parent_message_id, Message.created_on, Document.document_path,
+                           Document.document_size)
+                 .outerjoin(Document, Document.id == Message.document_id)
                  .filter(Message.id.in_(message_ids))
                  .order_by(Message.id))
         messages = jsonable_encoder(db.execute(query).mappings().all())
@@ -57,6 +59,8 @@ def fetch_messages(db: Session, chat_id: int, offset: int = constants.MESSAGE_OF
             message_id = message['parent_message_id']
             if message_id is None:
                 message_id = message['id']
+            if message['document_path']:
+                message['document_name'] = message.pop('document_path')[constants.PREFIX_LENGTH_OF_DOCUMENT:]
 
             if message_id in result:
                 result[message_id]['child_messages'].append(message)

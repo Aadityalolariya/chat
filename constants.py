@@ -14,5 +14,7 @@ MSG_SENT_STATUS = 3
 MESSAGE_OFFSET = 0
 MESSAGE_LIMIT = 1000
 
+PREFIX_LENGTH_OF_DOCUMENT = 36 + 7 + 1 + 1
+# PREFIX_LENGTH_OF_DOCUMENT = uuid  +  folder_path  +  1 \  +  1 _
 TOPIC_MESSAGE_SENT = 'message_sent'
 TOPIC_CHAT_SEEN = 'chat_seen'
