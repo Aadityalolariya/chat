@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from crud import CRUDUser
 from schemas import *
 from fastapi import status
+import dao
 
 
 def search_user(request: SearchUserSchema, db: Session, token: str) -> bool:
@@ -32,5 +33,15 @@ def search_user(request: SearchUserSchema, db: Session, token: str) -> bool:
             "created_on": str(user_obj.created_on),
         }
         return create_response(result=response)
+    except Exception as e:
+        return create_response(result="Error occurred", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)
+
+
+def get_contact(token: str, db: Session):
+    try:
+        decoded_token = decode_token(token=token)
+        result = dao.get_user_contacts_by_id(user_id=decoded_token.user_id, db=db)
+        return create_response(result=result)
+
     except Exception as e:
         return create_response(result="Error occurred", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)

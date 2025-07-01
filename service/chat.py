@@ -21,7 +21,7 @@ def create_new_chat(request: CreateChatSchema, db: Session, token: str):
         decoded_token = decode_token(token=token)
 
         if not request.is_group_chat:
-            response = handle_dual_chat_creation(request=request, db=db)
+            response = handle_dual_chat_creation(request=request, db=db, current_user=decoded_token.user_id)
         else:
             response = handle_group_chat_creation(request=request, db=db, admin_user=decoded_token.user_id)
 
@@ -31,9 +31,21 @@ def create_new_chat(request: CreateChatSchema, db: Session, token: str):
         raise e
 
 
-def handle_dual_chat_creation(request: CreateChatSchema, db: Session):
+def handle_dual_chat_creation(request: CreateChatSchema, db: Session, current_user: int):
     if len(request.user_ids) > 2:
-        return create_response(result="More than two users not allowed in dual chat", status_code=status.HTTP_400_BAD_REQUEST, is_error=True)
+        return create_response(result="More than two users not allowed in dual chat",
+                               status_code=status.HTTP_400_BAD_REQUEST, is_error=True)
+
+    # provide chat name as the name of other user
+    other_user_id = None
+    for user in request.user_ids:
+        if user != current_user:
+            other_user_id = user
+            break
+
+    current_user = CRUDUser.get_by_id(db=db, id=other_user_id)
+    chat_name = current_user.first_name + " " + current_user.last_name
+
     existing_chat = get_dual_chats_for_given_ids(user_ids=request.user_ids, db=db)
     if not existing_chat:
         obj_in = ChatSchema(is_group_chat=False)
@@ -44,7 +56,7 @@ def handle_dual_chat_creation(request: CreateChatSchema, db: Session):
 
         response = {
             "id": created_chat.id,
-            "chat_name": created_chat.chat_name,
+            "chat_name": chat_name,
             "is_group_chat": created_chat.is_group_chat,
             "created_on": created_chat.created_on.strftime('%Y-%m-%dT%H:%M:%S')
         }
@@ -52,7 +64,7 @@ def handle_dual_chat_creation(request: CreateChatSchema, db: Session):
         chatObj = CRUDChat.get_by_id(db=db, id=existing_chat)
         response = {
             "id": chatObj.id,
-            "chat_name": chatObj.chat_name,
+            "chat_name": chat_name,
             "is_group_chat": chatObj.is_group_chat,
             "created_on": chatObj.created_on.strftime('%Y-%m-%dT%H:%M:%S')
         }

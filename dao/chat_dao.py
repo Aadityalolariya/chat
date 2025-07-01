@@ -29,7 +29,7 @@ def get_dual_chats_for_given_ids(user_ids: List[int], db: Session) -> Optional[i
 
         common_chats = user_chat_sets[user_ids[0]]
         for user, chats in user_chat_sets.items():
-            common_chats.intersection(chats)
+            common_chats = common_chats.intersection(chats)
         if len(common_chats) > 1:
             return list(common_chats)[0]
         else:

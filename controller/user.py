@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Security
+from fastapi import APIRouter, Depends, Security, Request
 from fastapi.security import OAuth2PasswordBearer
 from utils import decode_token, create_response
 from crud.chat import CRUDChat
@@ -18,6 +18,15 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 def api_get_user(request: SearchUserSchema, db: Session = Depends(get_db), token: str = Security(oauth2_scheme)):
     try:
         result = service.search_user(request=request, db=db, token=token)
+        return result
+    except Exception as e:
+        return create_response(result=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)
+
+
+@user_router.get('/get_contacts')
+def api_get_user(db: Session = Depends(get_db), token: str = Security(oauth2_scheme)):
+    try:
+        result = service.get_contact(db=db, token=token)
         return result
     except Exception as e:
         return create_response(result=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)
