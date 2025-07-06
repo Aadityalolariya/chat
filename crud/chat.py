@@ -29,7 +29,8 @@ class ChatCrud(BaseCrud[Chat, ChatSchema, ChatSchema]):
                         "chat_name": record['chat_name'],
                         "created_on": record['created_on'],
                         "is_group_chat": record['is_group_chat'],
-                        "admin_user_id": record['admin_user_id']
+                        "admin_user_id": record['admin_user_id'],
+                        "users": [user_id]
                     }
 
             user_query = (sa.select(Chat.id, User.first_name, User.last_name, User.display_name, User.is_logged_in,
@@ -44,6 +45,7 @@ class ChatCrud(BaseCrud[Chat, ChatSchema, ChatSchema]):
             for record in user_result:
                 if record['user_id'] == user_id:
                     continue
+                chats[record['id']]['users'].append(record['user_id'])
                 if record['user_id'] not in users:
                     users[record['user_id']] = {
                         "first_name": record['first_name'],
