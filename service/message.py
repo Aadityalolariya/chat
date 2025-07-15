@@ -19,6 +19,7 @@ import shutil
 # sys.path.append(os.getcwd())
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(PROFILE_PIC_DIR, exist_ok=True)
 
 async def create_new_message(request: CreateMessageSchema, db: Session, token: str, chat_id: int, manager):
     """

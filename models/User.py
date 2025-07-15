@@ -14,7 +14,7 @@ class User(Base):
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50))
     display_name = Column(String(50))
-    profile_picture = Column(String(150))
+    profile_picture = Column(Integer, ForeignKey("document.id"))
     description = Column(Text)
     is_logged_in = Column(Boolean, nullable=False, default=True)
     currently_opened_chat_id = Column(Integer, ForeignKey("chat.id"))

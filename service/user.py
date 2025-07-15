@@ -45,3 +45,14 @@ def get_contact(token: str, db: Session):
 
     except Exception as e:
         return create_response(result="Error occurred", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)
+
+
+def set_profile_picture(document_id: int, token: str, db: Session):
+    try:
+        decoded_token = decode_token(token=token)
+        user_id = decoded_token.user_id
+        update_status = CRUDUser.update(db=db, obj_id=int(user_id), obj_in={"profile_picture": document_id})
+        return create_response(result={"update_status": update_status})
+
+    except Exception as e:
+        return create_response(result="Error occurred", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)

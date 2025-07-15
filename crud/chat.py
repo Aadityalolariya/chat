@@ -33,7 +33,7 @@ class ChatCrud(BaseCrud[Chat, ChatSchema, ChatSchema]):
                         "users": [user_id]
                     }
 
-            user_query = (sa.select(Chat.id, User.first_name, User.last_name, User.display_name, User.is_logged_in,
+            user_query = (sa.select(Chat.id, User.first_name, User.last_name, User.profile_picture, User.display_name, User.is_logged_in,
                                    User.currently_opened_chat_id, User.id.label("user_id"), User.phone_number,
                                    User.email)
                           .join(ChatUserMap, ChatUserMap.chat_id == Chat.id)
@@ -54,6 +54,7 @@ class ChatCrud(BaseCrud[Chat, ChatSchema, ChatSchema]):
                         "is_logged_in": record['is_logged_in'],
                         "currently_opened_chat_id": record['currently_opened_chat_id'],
                         "id": record['user_id'],
+                        "profile_picture": record['profile_picture'],
                         "phone_number": record['phone_number'],
                         "email": record['email']
                     }
@@ -66,6 +67,12 @@ class ChatCrud(BaseCrud[Chat, ChatSchema, ChatSchema]):
             for chat_id, details in chats.items():
                 if details['chat_name'] is None:
                     details['chat_name'] = chat_user[chat_id]
+                if len(details['users']) == 2:
+                    for e in details['users']:
+                        if e != user_id:
+                            details['profile_picture'] = users[e]['profile_picture']
+                else:
+                    details['profile_picture'] = None
 
             result = {
                 "chats": list(chats.values()),

@@ -73,6 +73,7 @@ def signup_user(user_details: SignupSchema, db: Session):
             "last_name": created_user.last_name,
             "email": created_user.email,
             "phone_number": created_user.phone_number,
+            "profile_picture": None,
             "token": generate_token(user_id=created_user.id, password=user_details.password)
         }
 
@@ -94,6 +95,7 @@ def get_user_info(request: ValidateToken, db: Session):
             "email": user_obj.email,
             "first_name": user_obj.first_name,
             "last_name": user_obj.last_name,
+            "profile_picture": user_obj.profile_picture,
             "display_name": user_obj.display_name,
             "created_on": user_obj.created_on,
             "phone_number": user_obj.phone_number

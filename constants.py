@@ -1,6 +1,7 @@
 from enum import Enum
 
 UPLOAD_DIR = "uploads"
+PROFILE_PIC_DIR = 'profile_pictures'
 
 MSG_SEEN_STATUS_USER = 'user'
 MSG_SEEN_STATUS_TIMESTAMP = 'ts'

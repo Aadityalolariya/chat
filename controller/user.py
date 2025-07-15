@@ -30,3 +30,13 @@ def api_get_user(db: Session = Depends(get_db), token: str = Security(oauth2_sch
         return result
     except Exception as e:
         return create_response(result=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)
+
+
+@user_router.get('/set_profile_picture')
+def api_set_profile_pic(document_id: int, db: Session = Depends(get_db), token: str = Security(oauth2_scheme)):
+    try:
+        result = service.set_profile_picture(document_id=document_id, db=db, token=token)
+        db.commit()
+        return result
+    except Exception as e:
+        return create_response(result=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, is_error=True)
